@@ -1,0 +1,143 @@
+CUSTOMER SUCCESS PORTAL
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Success - Agent Portal</title>
+    <link rel="stylesheet" href="/static/tailwind.css">
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans">
+
+    <!-- Navigation Header -->
+    <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl">🛡️</span>
+            <h1 class="text-xl font-bold text-white tracking-wide">Agent Operation Center</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm bg-green-900/60 text-green-400 px-3 py-1 rounded-full border border-green-700/50">
+                Staff Account: <strong class="text-white">{{ username }}</strong>
+            </span>
+            <a href="/" class="text-sm text-gray-400 hover:text-red-400 transition font-medium">Log Out</a>
+        </div>
+    </nav>
+
+    <!-- Main Content Layout -->
+    <main class="max-w-7xl mx-auto p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column: Database Record Lookup Search Tool -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-xl">
+                <h2 class="text-lg font-bold text-white mb-2">MySQL Record Retrieval</h2>
+                <p class="text-xs text-gray-400 mb-4">Query features from the underlying transactional database tables</p>
+                
+                <form action="/dashboard/staff" method="GET" class="space-y-4">
+                    <input type="hidden" name="username" value="{{ username }}">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Search Value (Tenure/Cashback)</label>
+                        <div class="flex space-x-2">
+                            <input type="text" name="search_id" value="{{ search_id or '' }}" placeholder="e.g., 9 or 160" required
+                                   class="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-sm">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-bold transition">
+                                Query
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Profile Info Display Panel -->
+            {% if profile %}
+            <div class="bg-gray-800 border border-gray-700 p-6 rounded-xl shadow-xl space-y-3">
+                <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider border-b border-gray-700 pb-2">Active Database Record Context</h3>
+                <div class="space-y-2 text-xs font-mono">
+                    <div class="flex justify-between"><span class="text-gray-400">Tenure:</span> <span class="text-white font-bold">{{ profile.get('Tenure', 'N/A') }} months</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">WarehouseToHome:</span> <span class="text-white font-bold">{{ profile.get('WarehouseToHome', 'N/A') }} km</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Complain Registered:</span> <span class="text-white font-bold">{{ 'Yes' if profile.get('Complain') == 1 else 'No' }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-400">Cashback Amount:</span> <span class="text-white font-bold">${{ profile.get('CashbackAmount', '0') }}</span></div>
+                </div>
+            </div>
+            {% elif search_id %}
+            <div class="p-4 bg-amber-950/40 border border-amber-700/50 text-amber-300 rounded-xl text-xs">
+                ⚠️ No customer found matching that query parameter. Try values from your dataset like <strong>9</strong> or <strong>4</strong>.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Real-Time Random Forest Prediction Playground & Scenario Simulator -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- ML Result Panel -->
+            {% if prediction_msg %}
+            <div class="border p-6 rounded-xl shadow-2xl flex items-center justify-between transition-all duration-300
+                        {% if 'ALERT' in prediction_msg %} bg-red-950/50 border-red-500/50 text-red-200 {% else %} bg-green-950/50 border-green-500/50 text-green-200 {% endif %}">
+                <div>
+                    <h3 class="text-xs uppercase tracking-widest font-semibold opacity-70">Random Forest Classifier Scoring</h3>
+                    <p class="text-2xl font-black mt-1">{{ prediction_msg }}</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs block opacity-70">Calculated Probability</span>
+                    <span class="text-4xl font-mono font-black block mt-1">{{ probability }}%</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Interactive Parameter Modification Simulator -->
+            <div class="bg-gray-800 border border-gray-700 p-8 rounded-xl shadow-xl">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-white">Live Scenario Playground</h2>
+                    <p class="text-xs text-gray-400 mt-1">Modify customer attributes below to execute on-the-fly Random Forest inference</p>
+                </div>
+
+                <form action="/predict" method="POST" class="space-y-6">
+                    <input type="hidden" name="username" value="{{ username }}">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Input 1: Tenure -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">Account Tenure (Months)</label>
+                            <input type="number" name="tenure" required min="0" max="120"
+                                   value="{{ profile.get('Tenure', 12) if profile else 12 }}"
+                                   class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-sm text-white">
+                        </div>
+
+                        <!-- Input 2: WarehouseToHome -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">Warehouse to Home Distance (KM)</label>
+                            <input type="number" name="warehouse_to_home" required min="0" max="200"
+                                   value="{{ profile.get('WarehouseToHome', 15) if profile else 15 }}"
+                                   class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-sm text-white">
+                        </div>
+
+                        <!-- Input 3: CashbackAmount -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">Monthly Cashback Reward ($)</label>
+                            <input type="number" name="cashback_amount" step="0.01" required min="0" max="1000"
+                                   value="{{ profile.get('CashbackAmount', 150.0) if profile else 150.0 }}"
+                                   class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-sm text-white">
+                        </div>
+
+                        <!-- Input 4: Complain Status Switch -->
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-2">Active Escalated Complaint</label>
+                            <select name="complain" class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-sm text-white">
+                                <option value="0" {% if profile and profile.get('Complain') == 0 %}selected{% endif %}>No - Customer Satisfied</option>
+                                <option value="1" {% if profile and profile.get('Complain') == 1 %}selected{% endif %}>Yes - Active Complaint Logged</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-lg transition shadow-lg shadow-blue-900/20 text-sm">
+                        Execute Live Prediction & Log Result to MySQL
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
+
