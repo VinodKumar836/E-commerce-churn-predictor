@@ -32,7 +32,7 @@ except FileNotFoundError:
 @app.get("/", response_class=HTMLResponse)
 async def login_page(request: Request, error: str = None):
     """Renders the secure, premium login user interface entrance."""
-    return templates.TemplateResponse(request=request,name="login.html", context={"error":error})
+    return templates.TemplateResponse(request=request,name="index.html", context={"error":error})
 
 # --- ROUTE 2: LOGIN AUTHENTICATION ROUTER ---
 @app.post("/login")
